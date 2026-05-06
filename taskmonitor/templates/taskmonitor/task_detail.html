@@ -1,0 +1,72 @@
+{% extends 'taskmonitor/base.html' %}
+
+{% block content %}
+
+<div style="margin-bottom:16px;">
+    <a href="{% url 'monitoring:public' %}" style="color:#1a56db; font-size:14px; text-decoration:none;">← Back to Progress</a>
+</div>
+
+<h2>{{ task.name }}</h2>
+<p class="subtitle">{{ task.description|default:"No description." }}</p>
+
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; gap:8px;">
+            <span class="badge badge-{{ task.task_type }}">{{ task.get_task_type_display }}</span>
+            <span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span>
+        </div>
+        <div class="meta">
+            <span>📅 Created {{ task.date_created|date:"M d, Y" }}</span>
+            {% if task.due_date %}<span>⏰ Due {{ task.due_date|date:"M d, Y" }}</span>{% endif %}
+        </div>
+    </div>
+
+    <div class="progress-row" style="margin-top:16px;">
+        <div class="progress-track" style="height:10px;">
+            <div class="progress-fill {{ task.status }}" style="width:{{ task.progress_pct }}%"></div>
+        </div>
+        <div class="progress-label" style="font-size:14px; font-weight:600;">
+            {{ task.get_progress.approved }}/{{ task.get_progress.total }} completed
+        </div>
+    </div>
+</div>
+
+<div class="section-title">Assigned Personnel</div>
+<div class="card">
+    {% for person in task.assigned_to.all %}
+        <div style="padding:6px 0; font-size:14px; border-bottom:1px solid #f0f0f0;">
+            👤 {{ person.first_name }} {{ person.last_name }}
+        </div>
+    {% empty %}
+        <div class="empty">No personnel assigned.</div>
+    {% endfor %}
+</div>
+
+<div class="section-title">Approved Submissions</div>
+
+{% if submissions %}
+<div class="submissions-grid">
+    {% for sub in submissions %}
+    <div class="submission-item">
+        {% if sub.image %}
+            <img src="{{ sub.image.url }}" alt="Submission photo">
+        {% else %}
+            <div style="height:120px; background:#e5e7eb; display:flex; align-items:center; justify-content:center; color:#999; font-size:12px;">
+                No photo
+            </div>
+        {% endif %}
+        <div class="sub-info">
+            <div>{{ sub.submitted_by.first_name }} {{ sub.submitted_by.last_name }}</div>
+            <div>{{ sub.submitted_time|date:"M d, Y H:i" }}</div>
+            {% if sub.latitude %}
+            <div>📍 {{ sub.latitude }}, {{ sub.longitude }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+    <div class="card empty">No approved submissions yet.</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'taskmonitor/base.html' %}
+
+{% block nav_links %}
+    <a href="{% url 'monitoring:password_change' %}">Change Password</a>
+    <form method="post" action="{% url 'monitoring:logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:white;cursor:pointer;font-size:14px;opacity:.85;">Logout</button>
+    </form>
+{% endblock %}
+
+{% block content %}
+<h2>My Tasks</h2>
+<p class="subtitle">Logged in as {{ request.user.first_name }} {{ request.user.last_name }}</p>
+
+{% if tasks %}
+    {% for task in tasks %}
+    <a href="{% url 'monitoring:task_detail_personnel' task.id %}" class="task-card">
+        <div class="task-card-top">
+            <div>
+                <div class="task-name">{{ task.name }}</div>
+                <div class="task-desc">{{ task.description|truncatechars:60|default:"No description." }}</div>
+            </div>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+                <span class="badge badge-{{ task.task_type }}">{{ task.get_task_type_display }}</span>
+                <span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span>
+            </div>
+        </div>
+
+        <div class="progress-row">
+            <div class="progress-track">
+                <div class="progress-fill {{ task.status }}" style="width:{{ task.progress_pct }}%"></div>
+            </div>
+            <div class="progress-label">{{ task.get_progress.approved }}/{{ task.get_progress.total }} items</div>
+        </div>
+
+        <div class="task-footer">
+            <div>
+                {% if task.equipment %}🧰 {{ task.equipment.name }}{% endif %}
+            </div>
+            <div>Due: {{ task.due_date|date:"M d, Y"|default:"No deadline" }}</div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="card empty">No tasks assigned to you yet.</div>
+{% endif %}
+
+{% endblock %}

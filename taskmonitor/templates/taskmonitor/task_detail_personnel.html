@@ -1,0 +1,160 @@
+{% extends 'taskmonitor/base.html' %}
+
+{% block nav_links %}
+    <a href="{% url 'monitoring:tasks' %}">← My Tasks</a>
+    <form method="post" action="{% url 'monitoring:logout' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:white;cursor:pointer;font-size:14px;opacity:.85;">Logout</button>
+    </form>
+{% endblock %}
+
+{% block content %}
+
+<h2>{{ task.name }}</h2>
+<p class="subtitle">{{ task.description|default:"No description." }}</p>
+
+<!-- TASK INFO -->
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; gap:8px;">
+            <span class="badge badge-{{ task.task_type }}">{{ task.get_task_type_display }}</span>
+            <span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span>
+        </div>
+        <div class="meta">
+            <span>📅 Created {{ task.date_created|date:"M d, Y" }}</span>
+            {% if task.due_date %}<span>⏰ Due {{ task.due_date|date:"M d, Y" }}</span>{% endif %}
+        </div>
+    </div>
+
+    <div class="progress-row" style="margin-top:16px;">
+        <div class="progress-track" style="height:10px;">
+            <div class="progress-fill {{ task.status }}" style="width:{{ task.progress_pct }}%"></div>
+        </div>
+        <div class="progress-label" style="font-size:14px; font-weight:600;">
+            {{ task.get_progress.approved }}/{{ task.get_progress.total }} completed
+        </div>
+    </div>
+
+    {% if task.equipment %}
+    <div style="margin-top:14px; font-size:14px;">
+        🧰 Equipment needed: <strong>{{ task.equipment.name }}</strong>
+        (Barangay has {{ task.equipment.quantity }} available)
+    </div>
+    {% endif %}
+</div>
+
+<!-- SUBMIT PROOF -->
+<div class="section-title">Submit Proof</div>
+<div class="card">
+    {% if task.status == 'completed' %}
+        <button class="btn btn-primary" disabled style="width:100%; opacity:.5; cursor:not-allowed;">
+            Task Completed — No More Submissions Needed
+        </button>
+    {% else %}
+        <form method="post" enctype="multipart/form-data" action="{% url 'monitoring:submit_for_task' task.id %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Photo</label>
+                <input type="file" name="image" accept="image/*" capture="environment" required>
+                <div style="font-size:12px; color:#888; margin-top:4px;">On mobile this will open your camera directly.</div>
+            </div>
+
+            <div class="form-group">
+                <label>GPS Location</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" name="latitude" id="lat" placeholder="Latitude" readonly>
+                    <input type="text" name="longitude" id="lng" placeholder="Longitude" readonly>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="getLocation()">
+                    📍 Get My Location
+                </button>
+                <div id="gps-status" style="font-size:12px; color:#888; margin-top:4px;"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%" id="submit-btn">Submit Proof</button>
+        </form>
+    {% endif %}
+</div>
+
+<!-- MY SUBMISSIONS FOR THIS TASK -->
+<div class="section-title">My Submissions for This Task</div>
+
+{% if submissions %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <table>
+        <thead>
+            <tr>
+                <th>Photo</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Rejection Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions %}
+            <tr>
+                <td>
+                    {% if sub.image %}
+                        <img src="{{ sub.image.url }}" style="width:60px; height:60px; object-fit:cover; border-radius:4px;">
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ sub.submitted_time|date:"M d, Y H:i" }}</td>
+                <td><span class="badge badge-{{ sub.validation_status }}">{{ sub.get_validation_status_display }}</span></td>
+                <td style="color:#dc2626;">{{ sub.rejection_reason|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    <div class="card empty">No submissions yet for this task.</div>
+{% endif %}
+
+<script>
+function getLocation() {
+    document.getElementById('gps-status').textContent = 'Getting location...';
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            document.getElementById('lat').value = pos.coords.latitude.toFixed(6);
+            document.getElementById('lng').value = pos.coords.longitude.toFixed(6);
+            document.getElementById('gps-status').textContent = '✓ Location captured';
+            document.getElementById('gps-status').style.color = '#16a34a';
+        },
+    );
+}
+
+document.querySelector('form') && document.querySelector('form').addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    if (btn) { btn.textContent = 'Uploading...'; btn.disabled = true; }
+});
+</script>
+
+<div class="section-title" style="margin-top:28px;">Report an Issue</div>
+<div class="card">
+    <p style="font-size:13px; color:#666; margin-bottom:14px;">
+        Can't complete this task due to conditions? Report it here so the admin can take action.
+    </p>
+    <form method="post" action="{% url 'monitoring:report_task' task.id %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Reason</label>
+            <select name="reason">
+                <option value="no_signal">No Signal</option>
+                <option value="bad_weather">Bad Weather</option>
+                <option value="location_issue">Location Issue</option>
+                <option value="equipment_issue">Equipment Issue</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Details (optional)</label>
+            <textarea name="details" placeholder="Describe the issue..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-secondary" style="width:100%">Submit Report</button>
+    </form>
+</div>
+
+{% endblock %}

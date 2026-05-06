@@ -1,0 +1,56 @@
+{% extends 'taskmonitor/base.html' %}
+
+{% block content %}
+<h2>Equipment Borrowing History</h2>
+<p class="subtitle">Record of all borrowed barangay equipment</p>
+
+{% if records %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <table>
+        <thead>
+            <tr>
+                <th>Equipment</th>
+                <th>Borrowed By</th>
+                <th>Quantity</th>
+                <th>Date Borrowed</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Returned Date</th>
+                <th>Proof</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td><strong>{{ record.equipment.name }}</strong></td>
+                <td>{{ record.borrowed_by }}</td>
+                <td>{{ record.quantity_borrowed }}</td>
+                <td>{{ record.borrowed_date|date:"M d, Y" }}</td>
+                <td>{{ record.due_date|date:"M d, Y"|default:"—" }}</td>
+                <td>
+                    {% if record.returned %}
+                        <span class="badge badge-completed">Returned</span>
+                    {% else %}
+                        <span class="badge badge-in_progress">Borrowed</span>
+                    {% endif %}
+                </td>
+                <td>{{ record.returned_date|date:"M d, Y"|default:"—" }}</td>
+                <td>
+                    {% if record.proof_image %}
+                        <a href="{{ record.proof_image.url }}" target="_blank">View Photo</a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ record.notes|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    <div class="card empty">No borrowing records yet.</div>
+{% endif %}
+
+{% endblock %}

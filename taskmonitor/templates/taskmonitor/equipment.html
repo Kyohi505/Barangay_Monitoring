@@ -1,0 +1,65 @@
+{% extends 'taskmonitor/base.html' %}
+
+{% block content %}
+<h2>Barangay Equipment</h2>
+<p class="subtitle">Inventory of barangay owned equipment and current borrowing status</p>
+
+<div class="section-title">Equipment Inventory</div>
+{% if equipment_list %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <table>
+        <thead>
+            <tr>
+                <th>Equipment</th>
+                <th>Total Quantity</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in equipment_list %}
+            <tr>
+                <td><strong>{{ item.name }}</strong></td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.description|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card empty">No equipment listed yet.</div>
+{% endif %}
+
+<div class="section-title" style="margin-top:28px;">Currently Borrowed</div>
+{% if active_borrows %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <table>
+        <thead>
+            <tr>
+                <th>Equipment</th>
+                <th>Borrowed By</th>
+                <th>Quantity</th>
+                <th>Date Borrowed</th>
+                <th>Due Date</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for borrow in active_borrows %}
+            <tr>
+                <td>{{ borrow.equipment.name }}</td>
+                <td>{{ borrow.borrowed_by }}</td>
+                <td>{{ borrow.quantity_borrowed }}</td>
+                <td>{{ borrow.borrowed_date|date:"M d, Y" }}</td>
+                <td>{{ borrow.due_date|date:"M d, Y"|default:"No deadline" }}</td>
+                <td>{{ borrow.notes|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card empty">No equipment currently borrowed.</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'taskmonitor/base.html' %}
+
+{% block content %}
+
+<!-- HERO -->
+<div style="background:#1a56db; color:white; border-radius:10px; padding:40px 32px; margin-bottom:28px;">
+    <div style="font-size:13px; opacity:.7; margin-bottom:8px; text-transform:uppercase; letter-spacing:.08em;">Official Transparency Portal</div>
+    <h1 style="font-size:28px; font-weight:700; margin-bottom:10px;">Barangay Monitoring System</h1>
+    <p style="opacity:.85; font-size:15px; max-width:560px; line-height:1.6;">
+        This portal allows residents to track the progress of ongoing barangay programs, campaigns, and tasks in real time. All updates are submitted by assigned personnel and verified by the barangay administration.
+    </p>
+</div>
+
+<!-- STATS -->
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;">
+    <div class="card" style="text-align:center; padding:20px;">
+        <div style="font-size:28px; font-weight:700; color:#1a56db;">{{ total }}</div>
+        <div style="font-size:13px; color:#666; margin-top:4px;">Total Tasks</div>
+    </div>
+    <div class="card" style="text-align:center; padding:20px;">
+        <div style="font-size:28px; font-weight:700; color:#16a34a;">{{ completed }}</div>
+        <div style="font-size:13px; color:#666; margin-top:4px;">Completed</div>
+    </div>
+    <div class="card" style="text-align:center; padding:20px;">
+        <div style="font-size:28px; font-weight:700; color:#d97706;">{{ in_progress }}</div>
+        <div style="font-size:13px; color:#666; margin-top:4px;">In Progress</div>
+    </div>
+</div>
+
+<!-- TASK LIST -->
+<div class="section-title">Currently Active Tasks</div>
+
+{% if tasks %}
+    {% for task in tasks %}
+    <a href="{% url 'monitoring:task_detail' task.id %}" class="task-card">
+        <div class="task-card-top">
+            <div>
+                <div class="task-name">{{ task.name }}</div>
+                <div class="task-desc">{{ task.description|truncatechars:80|default:"No description." }}</div>
+            </div>
+            <span class="badge badge-{{ task.status }}">{{ task.get_status_display }}</span>
+        </div>
+
+        <div class="progress-row">
+            <div class="progress-track">
+                <div class="progress-fill {{ task.status }}" style="width:{{ task.progress_pct }}%"></div>
+            </div>
+            <div class="progress-label">{{ task.get_progress.approved }}/{{ task.get_progress.total }}</div>
+        </div>
+
+        <div class="task-footer">
+            <div class="meta">
+                <span>📅 {{ task.date_created|date:"M d, Y" }}</span>
+                {% if task.due_date %}<span>⏰ Due {{ task.due_date|date:"M d, Y" }}</span>{% endif %}
+            </div>
+            <div style="font-size:12px; color:#1a56db;">View details →</div>
+        </div>
+    </a>
+    {% endfor %}
+{% else %}
+    <div class="card empty">No tasks yet.</div>
+{% endif %}
+
+{% endblock %}
