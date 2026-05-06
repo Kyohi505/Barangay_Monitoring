@@ -1,27 +1,8 @@
-Requirements:
-django
-djangorestframework
-djangorestframework-simplejwt
-django-cors-headers
-cloudinary
-django-cloudinary-storage
-python-dotenv
-gunicorn
-django-q2
-easyocr
-opencv-python
-numpy
-pillow
-pillow-heif
-psycopg2-binary
-
-pip install django djangorestframework djangorestframework-simplejwt django-cors-headers cloudinary django-cloudinary-storage python-dotenv gunicorn django-q2 easyocr opencv-python numpy pillow pillow-heif psycopg2-binary
-
-
 Commands to run once
 These are one-time setup commands — run them on every new environment (your laptop, your friend's laptop, Render):
 
 # 1. install dependencies
+pip install django djangorestframework djangorestframework-simplejwt django-cors-headers cloudinary django-cloudinary-storage python-dotenv gunicorn django-q2 easyocr opencv-python numpy pillow pillow-heif psycopg2-binary
 
 # 2. apply database migrations
 python manage.py makemigrations
